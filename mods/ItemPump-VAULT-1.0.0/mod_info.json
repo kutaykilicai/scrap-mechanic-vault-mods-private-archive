@@ -1,0 +1,6 @@
+{
+  "name": "Item Pump",
+  "author": "V.A.U.L.T / Kutay",
+  "description": "Pipe item transfer: IN(+Y) chest -> pump -> OUT(-Y) chest. Optional filter slots. Does not modify Vacuum or Item Filter scripts.",
+  "version": "1.0.0"
+}

@@ -1,0 +1,65 @@
+{
+  "package": "ClearRain-25-VAULT-0.0.20260820",
+  "nexus_mod": 47,
+  "nexus_file": 212,
+  "variant": "25",
+  "method": "scale_color_alpha_x0.25 on p_rain_{drizzle,rain,storm}.json",
+  "source": "vanilla game particles scaled; pending Nexus byte-compare",
+  "files": [
+    {
+      "file": "p_rain_drizzle.json",
+      "size": 10479,
+      "alphas_sample_before": [
+        0.90625,
+        0.76862,
+        0.77253,
+        0.76862
+      ],
+      "alphas_sample_after": [
+        0.2265625,
+        0.192155,
+        0.1931325,
+        0.192155
+      ],
+      "md5": "918963b45de293c771153dbe0b701791"
+    },
+    {
+      "file": "p_rain_rain.json",
+      "size": 13027,
+      "alphas_sample_before": [
+        0.77253,
+        0.76862,
+        0.77253,
+        0.76862,
+        0.94138
+      ],
+      "alphas_sample_after": [
+        0.1931325,
+        0.192155,
+        0.1931325,
+        0.192155,
+        0.235345
+      ],
+      "md5": "a5249b81ae344de4df5620a8de2e89fa"
+    },
+    {
+      "file": "p_rain_storm.json",
+      "size": 12623,
+      "alphas_sample_before": [
+        0.77253,
+        0.76862,
+        1.0,
+        0.76862,
+        0.94138
+      ],
+      "alphas_sample_after": [
+        0.1931325,
+        0.192155,
+        0.25,
+        0.192155,
+        0.235345
+      ],
+      "md5": "be466b91c25ebb6215146d74b9658566"
+    }
+  ]
+}

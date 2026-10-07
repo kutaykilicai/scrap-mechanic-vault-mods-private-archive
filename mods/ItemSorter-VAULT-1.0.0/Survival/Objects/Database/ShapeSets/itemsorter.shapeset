@@ -1,0 +1,60 @@
+{
+	"partList" :
+	[
+		{
+			"box" :
+			{
+				"x" : 10,
+				"y" : 5,
+				"z" : 8
+			},
+			"carryItem" : true,
+			"color" : "3aa655",
+			"flammable" : false,
+			"name" : "obj_interactive_itemsorter",
+			"physicsMaterial" : "Mechanical",
+			"pipe" :
+			{
+				"openings" :
+				[
+					{
+						"side" : "+X",
+						"x" : 5.0,
+						"y" : 0,
+						"z" : 0
+					},
+					{
+						"side" : "-X",
+						"x" : -5.0,
+						"y" : 0,
+						"z" : 0
+					}
+				],
+				"type" : "Pipe"
+			},
+			"ratings" :
+			{
+				"buoyancy" : 2,
+				"density" : 4,
+				"durability" : 7,
+				"friction" : 5
+			},
+			"renderable" : "$SURVIVAL_DATA/Objects/Renderable/interactive/obj_interactive_itemsorter.rend",
+			"restrictions" :
+			{
+				"usable" : true
+			},
+			"rotationSet" : "PropY",
+			"scripted" :
+			{
+				"classname" : "ItemSorter",
+				"data" : {},
+				"filename" : "$SURVIVAL_DATA/Scripts/game/interactables/ItemSorter.lua"
+			},
+			"showInInventory" : true,
+			"stackSize" : 1,
+			"sticky" : "-X+X",
+			"uuid" : "d4f8b2c1-7a39-4e6f-91b0-5c8d2e4a7f13"
+		}
+	]
+}

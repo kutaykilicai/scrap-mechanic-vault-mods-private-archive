@@ -1,0 +1,35 @@
+{
+	"partList" :
+	[
+		{
+			"box" :
+			{
+				"x" : 1,
+				"y" : 1,
+				"z" : 1
+			},
+			"color" : "cc1a1a",
+			"flammable" : false,
+			"name" : "obj_interactive_brakelight_vault",
+			"physicsMaterial" : "Mechanical",
+			"ratings" :
+			{
+				"buoyancy" : 2,
+				"density" : 2,
+				"durability" : 3,
+				"friction" : 5
+			},
+			"renderable" : "$GAME_DATA/Objects/Renderable/Interactive/obj_interactive_logicgate.rend",
+			"rotationSet" : "PropYZ",
+			"scripted" :
+			{
+				"classname" : "BrakeLightVault",
+				"data" : {},
+				"filename" : "$SURVIVAL_DATA/Scripts/game/interactables/BrakeLightVault.lua"
+			},
+			"showInInventory" : true,
+			"stackSize" : 10,
+			"uuid" : "da5a8854-9644-4b8c-98e7-2efdf3c8cb64"
+		}
+	]
+}

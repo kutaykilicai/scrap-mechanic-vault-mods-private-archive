@@ -1,0 +1,18 @@
+{
+  "uuid": "b7e4a201-9c58-4f2d-8a61-0d3e5f7a9124",
+  "status": "packaged_on_box_ready_for_vortex_deploy",
+  "mesh_fix": "Package FBX +180 deg about Z (mesh-only facing flip); dual meshes itempump+itemfilter; USF=1; InDirectionLocal stays +Y",
+  "mesh_file": "Survival/Objects/Mesh/interactive/obj_interactive_itempump.fbx",
+  "mesh_names": [
+    "itempump",
+    "itemfilter"
+  ],
+  "UnitScaleFactor": 1.0,
+  "pipe_fx": "server sends path; client prefers data.path else ConstructPipedShapeGraph rebuild else {src,self,dst}; duration>=0.7; pushShapeEffectTask; no PumpSuction; no sm.pipeGraph.getContainerPath",
+  "updated_at": "2026-09-24T19:45+03",
+  "deployed_at": null,
+  "mesh_rotation": "+180 deg about Z",
+  "mesh_rotation_axis": "Z",
+  "mesh_rotation_deg": 180,
+  "InDirectionLocal": "+Y (unchanged)"
+}

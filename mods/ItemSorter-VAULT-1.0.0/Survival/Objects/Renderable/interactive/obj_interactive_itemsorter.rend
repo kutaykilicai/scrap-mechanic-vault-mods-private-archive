@@ -1,0 +1,31 @@
+{
+	"lodList": [
+		{
+			"includes": [
+				"POSITION",
+				"UV0",
+				"NORMAL"
+			],
+			"mesh": "$SURVIVAL_DATA/Objects/Mesh/interactive/obj_interactive_itemsorter.fbx",
+			"minViewSize": 25,
+			"subMeshMap": {
+				"sortbot": {
+					"material": "DifAsgNor",
+					"textureList": [
+						"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_itemsorter_dif.tga",
+						"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_itemsorter_asg.tga",
+						"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_itemsorter_nor.tga"
+					]
+				},
+				"itemsorter": {
+					"material": "DifAsgNor",
+					"textureList": [
+						"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_itemsorter_dif.tga",
+						"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_itemsorter_asg.tga",
+						"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_itemsorter_nor.tga"
+					]
+				}
+			}
+		}
+	]
+}

@@ -1,0 +1,8 @@
+{
+	"description": "Clear Rain 25% opacity (see-through rain). Based on Etsi0 Nexus mod 47 Clear Rain - 25. Overlays Data/Particles/rain. After install delete Cache/Bundle/core_data.cbo. VAULT rebuild if Nexus file unavailable.",
+	"fileId": 212,
+	"localId": "c1ea7a1n-0025-47e0-9f25-0e7s10c1eara",
+	"name": "Clear Rain - 25",
+	"type": "Gameplay Effects and Changes",
+	"version": 1
+}

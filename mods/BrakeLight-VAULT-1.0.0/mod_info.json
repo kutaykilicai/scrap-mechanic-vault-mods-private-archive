@@ -1,0 +1,6 @@
+{
+  "name": "BrakeLight-VAULT",
+  "author": "V.A.U.L.T / Kutay",
+  "description": "Brake Relay: Driver's Seat (power) -> relay -> vanilla lights (logic). Lights ON while S is held. New part only; no ItemPump/ItemFilter/ClearRain files shipped.",
+  "version": "1.0.0"
+}

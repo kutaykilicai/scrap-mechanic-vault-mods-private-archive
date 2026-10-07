@@ -1,0 +1,28 @@
+{
+  "uuid": "da5a8854-9644-4b8c-98e7-2efdf3c8cb64",
+  "name": "Brake Relay",
+  "classname": "BrakeLightVault",
+  "version": "1.0.0",
+  "status": "packaged_on_box_not_deployed",
+  "deployed_at": null,
+  "design": "power-in (Driver's Seat) -> logic-out relay; ON while seat getSteeringPower() < -0.05 (S). Fallback getPower().",
+  "renderable": "$GAME_DATA/Objects/Renderable/Interactive/obj_interactive_logicgate.rend (vanilla, box 1x1x1, rotationSet PropYZ)",
+  "recipe": "craftbot_small_pipes: 3x 8aedf6c2-94e1-4506-89d4-a0227c552f1e, craftTime 2",
+  "unique_files": {
+    "Survival/Objects/Database/ShapeSets/brakelight_vault.shapeset": "9cf71ac976794b8b473a419edcad7606",
+    "Survival/Scripts/game/interactables/BrakeLightVault.lua": "44fbad30a57d3c5d8f523d17c291abef"
+  },
+  "patcher_md5": "833b7c8e2e1ec7ad43fe1d851d95cc11",
+  "shared_files_single_line_patch": [
+    "Survival/Objects/Database/shapesets.json",
+    "Survival/Scripts/game/managers/RecipeManager.lua",
+    "Survival/CraftingRecipes/craftbot/craftbot_small_pipes.json",
+    "Survival/Gui/Language/English/inventoryDescriptions.json"
+  ],
+  "guards": {
+    "ItemPump.lua": "9171e16adb9e5cfd8a119cf93e47caa4",
+    "ItemFilter.lua": "b8e2e2db683dfcb05da08ca50b8927b7"
+  },
+  "no_overlay_files_in_package": true,
+  "itempump_uuid_untouched": "b7e4a201-9c58-4f2d-8a61-0d3e5f7a9124"
+}

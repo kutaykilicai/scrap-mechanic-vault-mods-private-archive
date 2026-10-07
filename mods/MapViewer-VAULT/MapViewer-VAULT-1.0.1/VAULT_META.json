@@ -1,0 +1,10 @@
+{
+  "uuid": "13c7d07c-9b83-4a53-aabd-9a36bf1e886a",
+  "version": "1.0.1",
+  "status": "packaged_on_box_not_deployed",
+  "bugfix": "1.0.0 used Creative radio.rend with custom scripted (no radio:{}). Pose-anim radio mesh stayed invisible and part would not place. 1.0.1 uses Survival beacon.rend + beacon box/sticky/rotationSet; same uuid/script.",
+  "mod_manager": false,
+  "foliage_eraser": false,
+  "mesh": "$SURVIVAL_DATA/Objects/Renderable/interactive/obj_interactive_beacon.rend (tinted 3d7ec9)",
+  "deployed_at": null
+}

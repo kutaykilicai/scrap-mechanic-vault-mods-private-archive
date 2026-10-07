@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<MyGUI type="Layout" version="3.2.0">
+    <Widget type="Widget" skin="PanelEmpty" align="Default" name="BackPanel" position_real="0.16 0.08 0.68 0.84">
+        <Property key="NeedKey" value="false" />
+        <Widget type="Widget" skin="BackgroundDarkRoundedUpperRight" name="HeaderPanel" position_real="0 0 1 0.10">
+            <Property key="NeedMouse" value="false" />
+        </Widget>
+        <Widget type="Widget" skin="BackgroundLightRoundedLowerLeft" name="ContentPanel" position_real="0 0.10 1 0.90">
+            <Property key="NeedMouse" value="false" />
+        </Widget>
+        <Widget type="TextBox" skin="TextBox" name="Title" position_real="0.03 0.02 0.70 0.06">
+            <Property key="Caption" value="MAP VIEWER" />
+            <Property key="FontName" value="SM_HeaderLarge_Wide" />
+            <Property key="TextAlign" value="Left VCenter" />
+            <Property key="NeedMouse" value="false" />
+        </Widget>
+        <Widget type="Button" skin="SecondaryButton" name="Close" position_real="0.82 0.025 0.15 0.05">
+            <Property key="Caption" value="CLOSE" />
+            <Property key="FontName" value="SM_ButtonSmall" />
+            <Property key="TextAlign" value="Center" />
+        </Widget>
+        <Widget type="TextBox" skin="TextBox" name="Pos" position_real="0.03 0.12 0.94 0.045">
+            <Property key="Caption" value="X 0  Y 0  Z 0" />
+            <Property key="FontName" value="SM_ListItem" />
+            <Property key="TextAlign" value="Left VCenter" />
+            <Property key="NeedMouse" value="false" />
+        </Widget>
+        <Widget type="TextBox" skin="TextBox" name="Yaw" position_real="0.03 0.165 0.94 0.04">
+            <Property key="Caption" value="" />
+            <Property key="FontName" value="SM_ListItem" />
+            <Property key="TextAlign" value="Left VCenter" />
+            <Property key="TextColour" value="0.45 0.48 0.52" />
+            <Property key="NeedMouse" value="false" />
+        </Widget>
+        <Widget type="TextBox" skin="TextBox" name="Rose" position_real="0.03 0.21 0.46 0.42">
+            <Property key="Caption" value="" />
+            <Property key="FontName" value="SM_NumberTiny" />
+            <Property key="TextAlign" value="Left Top" />
+            <Property key="NeedMouse" value="false" />
+        </Widget>
+        <Widget type="TextBox" skin="TextBox" name="WpList" position_real="0.50 0.21 0.47 0.42">
+            <Property key="Caption" value="" />
+            <Property key="FontName" value="SM_TextTiny" />
+            <Property key="TextAlign" value="Left Top" />
+            <Property key="WordWrap" value="true" />
+            <Property key="NeedMouse" value="false" />
+        </Widget>
+        <Widget type="EditBox" skin="EditBoxEmpty" name="WpName" position_real="0.03 0.66 0.94 0.06">
+            <Property key="Caption" value="" />
+            <Property key="FontName" value="SM_ListItem" />
+            <Property key="TextAlign" value="Left VCenter" />
+            <Property key="MaxTextLength" value="24" />
+        </Widget>
+        <Widget type="Button" skin="StyledButtonLarge" name="AddHere" position_real="0.03 0.76 0.30 0.08">
+            <Property key="Caption" value="ADD HERE" />
+            <Property key="FontName" value="SM_ButtonSmall" />
+            <Property key="TextAlign" value="Center" />
+        </Widget>
+        <Widget type="Button" skin="SecondaryButton" name="RemoveLast" position_real="0.35 0.76 0.30 0.08">
+            <Property key="Caption" value="REMOVE LAST" />
+            <Property key="FontName" value="SM_ButtonSmall" />
+            <Property key="TextAlign" value="Center" />
+        </Widget>
+        <Widget type="Button" skin="SecondaryButton" name="Clear" position_real="0.67 0.76 0.30 0.08">
+            <Property key="Caption" value="CLEAR" />
+            <Property key="FontName" value="SM_ButtonSmall" />
+            <Property key="TextAlign" value="Center" />
+        </Widget>
+        <Widget type="TextBox" skin="TextBox" name="Hint" position_real="0.03 0.88 0.94 0.08">
+            <Property key="Caption" value="No live terrain. +Y is North. One cell on the rose is 32 m. Waypoints save on this block." />
+            <Property key="FontName" value="SM_TextTiny" />
+            <Property key="TextAlign" value="Left Top" />
+            <Property key="WordWrap" value="true" />
+            <Property key="TextColour" value="0.45 0.48 0.52" />
+            <Property key="NeedMouse" value="false" />
+        </Widget>
+    </Widget>
+</MyGUI>
