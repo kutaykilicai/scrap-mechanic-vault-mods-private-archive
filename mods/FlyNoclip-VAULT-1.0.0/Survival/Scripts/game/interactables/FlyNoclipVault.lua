@@ -1,4 +1,4 @@
--- FlyNoclip-VAULT 1.0.0
+-- FlyNoclip-VAULT 1.0.1 (hız x2.75, yeni kapatma yolları)
 -- Survival "Uçuş İşaretçisi" (Fly Beacon). Yeni, izole bir parça scripti.
 -- Hiçbir oyun scriptini (SurvivalGame, SurvivalPlayer, WaterManager...) değiştirmez,
 -- global hook yok, dofile yok, kalıcı storage yok (dünya save'ine veri yazmaz).
@@ -10,17 +10,29 @@
 -- Kontroller:
 --   E (parçaya bak)          : Kapalı -> Uçuş -> Uçuş+Noclip -> Kapalı
 --   U / Tinker (parçaya bak) : hız seviyesi
---   Ctrl'e hızlı 2 kez bas   : her yerde KAPAT (parça yüklü olduğu sürece)
---   Shift                    : uçarken 2x hız
+--   KAPAT (parça yüklü olduğu sürece, her yerde):
+--     * Baş sallama: dümdüz YUKARI bak -> dümdüz AŞAĞI bak -> tekrar YUKARI (1.5 sn içinde)
+--       (sadece bakış yönü kullanılır; uçarken her zaman algılanır)
+--     * Shift'e hızlı 2 kez bas
+--     * Ctrl'e hızlı 2 kez bas (1.0.0'da oyunda çalışmadı; yedek olarak duruyor)
+--     * Parçaya bakıp E
+--   Shift (basılı)           : uçarken 2x hız
+--
+-- Not: sm.interactable.actions / client_onAction SADECE karakter bu parçaya kilitliyken
+-- (koltuk gibi) gelir. Serbest uçan oyuncunun tuşları parçaya iletilmez; global tuş
+-- yakalamak için SurvivalPlayer.lua değiştirilmeli (bu mod onu bilerek değiştirmez).
 
 FlyNoclipVault = class()
 FlyNoclipVault.maxParentCount = 0
 FlyNoclipVault.maxChildCount = 0
 
-local SPEEDS = { 2.0, 3.5, 6.0, 10.0 }
+local SPEEDS = { 5.5, 9.5, 16.5, 27.5 } -- 1.0.0: 2 / 3.5 / 6 / 10 (x2.75)
 local SPRINT_MULT = 2.0
 local DEFAULT_SPEED_IDX = 2
-local DOUBLE_TAP_TICKS = 20          -- 0.5 s @ 40 tick/s
+local DOUBLE_TAP_TICKS = 20          -- 0.5 s @ 40 tick/s (iki dokunuş arası)
+local TAP_MAX_TICKS = 12             -- 0.3 s: bundan uzun basılı tutma dokunuş sayılmaz
+local NOD_TICKS = 60                 -- 1.5 s: yukarı -> aşağı -> yukarı
+local NOD_Z = 0.95                   -- |direction.z| >= 0.95  (~72 derece, neredeyse dik)
 local PHASE_PUSH_TICKS = 8           -- duvara ~0.2 s itince geç
 local PHASE_COOLDOWN_TICKS = 30      -- 0.75 s
 local PHASE_MAX_DIST = 8.0
@@ -100,7 +112,8 @@ function FlyNoclipVault.sv_setMode(self, player, mode)
 	if character == nil then return end
 	local st = self.sv.players[player.id]
 	if st == nil then
-		st = { player = player, mode = mode, crouchPrev = false, lastTap = -1000,
+		st = { player = player, mode = mode,
+			taps = {}, nodStage = 0, nodTick = -1000,
 			pushTicks = 0, lastPhase = -1000, farWarned = false }
 		self.sv.players[player.id] = st
 	end
@@ -110,7 +123,7 @@ function FlyNoclipVault.sv_setMode(self, player, mode)
 	if mode == 2 and self.sv.phaseBroken then
 		self:sv_msg(player, "UÇUŞ + NOCLIP (noclip bu oyun sürümünde çalışmadı, sadece uçuş)")
 	else
-		self:sv_msg(player, MODE_NAMES[mode] .. "  |  Kapat: Ctrl'e 2 kez hızlı bas")
+		self:sv_msg(player, MODE_NAMES[mode] .. "  |  Kapat: yukarı-aşağı-yukarı bak  veya  Shift x2")
 	end
 end
 
@@ -223,6 +236,53 @@ function FlyNoclipVault.sv_tryPhase(self, st, character)
 	end
 end
 
+-- Kısa dokunuş algılama: basılı tutma (ör. Shift ile hızlanma) SAYILMAZ.
+-- Bir dokunuş = basıp TAP_MAX_TICKS içinde bırakmak. İki dokunuş arası <= DOUBLE_TAP_TICKS.
+function FlyNoclipVault.sv_tapTap(self, st, key, down, tick)
+	local k = st.taps[key]
+	if k == nil then k = { down = false, pressTick = -1000, lastTap = -1000 } st.taps[key] = k end
+	if down ~= k.down then print("[FlyNoclipVault] " .. key .. "=" .. tostring(down)) end
+	local fired = false
+	if down and not k.down then
+		k.pressTick = tick
+	elseif not down and k.down then
+		if tick - k.pressTick <= TAP_MAX_TICKS then
+			if tick - k.lastTap <= DOUBLE_TAP_TICKS then
+				fired = true
+				k.lastTap = -1000
+			else
+				k.lastTap = tick
+			end
+		else
+			k.lastTap = -1000
+		end
+	end
+	k.down = down
+	return fired
+end
+
+-- Kapatma hareketleri. Hangisi tetiklenirse onun adını döndürür.
+function FlyNoclipVault.sv_checkOffGestures(self, st, character)
+	local tick = self.sv.tick
+	-- 1) Baş sallama (sadece bakış yönü; uçarken de güvenilir)
+	local dir = character.direction
+	if dir ~= nil then
+		local z = dir.z
+		if st.nodStage > 0 and tick - st.nodTick > NOD_TICKS then st.nodStage = 0 end
+		if st.nodStage == 0 then
+			if z >= NOD_Z then st.nodStage = 1 st.nodTick = tick end
+		elseif st.nodStage == 1 then
+			if z <= -NOD_Z then st.nodStage = 2 end
+		elseif st.nodStage == 2 then
+			if z >= NOD_Z then st.nodStage = 0 return "yukarı-aşağı-yukarı" end
+		end
+	end
+	-- 2) Shift kısa-kısa 2 dokunuş, 3) Ctrl kısa-kısa 2 dokunuş (yedek)
+	if self:sv_tapTap(st, "sprint", character:isSprinting(), tick) then return "Shift x2" end
+	if self:sv_tapTap(st, "crouch", character:isCrouching(), tick) then return "Ctrl x2" end
+	return nil
+end
+
 function FlyNoclipVault.server_onFixedUpdate(self, dt)
 	if next(self.sv.players) == nil then return end -- kapalıyken hiçbir şey yapma
 	self.sv.tick = self.sv.tick + 1
@@ -234,18 +294,12 @@ function FlyNoclipVault.server_onFixedUpdate(self, dt)
 		else
 			local character = charOf(player)
 			if character ~= nil then
-				-- Ctrl çift dokunuş -> kapat
-				local crouch = character:isCrouching()
+				local reason = self:sv_checkOffGestures(st, character)
 				local disabled = false
-				if crouch and not st.crouchPrev then
-					if self.sv.tick - st.lastTap <= DOUBLE_TAP_TICKS then
-						self:sv_disable(player, "Ctrl x2")
-						disabled = true
-					else
-						st.lastTap = self.sv.tick
-					end
+				if reason ~= nil then
+					self:sv_disable(player, reason)
+					disabled = true
 				end
-				st.crouchPrev = crouch
 				if not disabled and isCarrying(player) then
 					self:sv_disable(player, "bir şey taşırken uçmak takılmaya yol açar")
 					disabled = true
@@ -256,7 +310,7 @@ function FlyNoclipVault.server_onFixedUpdate(self, dt)
 					local d = (character.worldPosition - myPos):length()
 					if d > FAR_WARN_DIST and not st.farWarned then
 						st.farWarned = true
-						self:sv_msg(player, "Uyarı: Uçuş İşaretçisinden çok uzaklaştın. Parça yüklenmezse kontrol (Ctrl x2) çalışmaz.")
+						self:sv_msg(player, "Uyarı: Uçuş İşaretçisinden çok uzaklaştın. Parça yüklenmezse kapatma hareketleri çalışmaz.")
 					elseif d < FAR_WARN_DIST * 0.8 then
 						st.farWarned = false
 					end

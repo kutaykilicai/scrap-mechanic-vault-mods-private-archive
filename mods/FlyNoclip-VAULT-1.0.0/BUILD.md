@@ -19,3 +19,11 @@ Built on the box 2026-10-09 (Europe/Istanbul). **Not deployed. Kasa not read or 
 
 ## Not tested
 Anything in the real game. See README "Bilinen sınırlar".
+
+## 1.0.1 (2026-10-09, after Kutay's in-game test)
+- In game: beacon appears and flight works; Ctrl double-tap did NOT turn flight off; speed too slow.
+- SPEEDS x2.75 (5.5/9.5/16.5/27.5), default level 2, sprint multiplier 2 unchanged.
+- Off gestures: look-nod (direction only, always replicated), Shift tap-tap (holding Shift to boost does not count), Ctrl tap-tap kept as backup, E on part.
+- Checked: `sm.interactable.actions` / `client_onAction` only reach an interactable the character is locked to (seat-style). The Survival player script only exposes `client_onInteract`/`client_onCancel`. No overlay-safe global key hook exists without editing SurvivalPlayer.lua, so none is used.
+- Debug: sprint/crouch state changes printed to the game console while flying.
+- `tools/mock_test.lua` (luajit) covers: speeds, hold-Shift not off, Shift x2 off, Ctrl x2 off, nod off, half/slow nod stays on, phase, phase failure, carry off, destroy cleanup.

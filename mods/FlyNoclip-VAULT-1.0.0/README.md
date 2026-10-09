@@ -1,4 +1,8 @@
-# FlyNoclip-VAULT 1.0.0 — Uçuş İşaretçisi (Fly Beacon)
+# FlyNoclip-VAULT 1.0.0 (script 1.0.1) — Uçuş İşaretçisi (Fly Beacon)
+
+## 1.0.1 değişiklikleri (oyun testinden sonra)
+- Hız **2,75 kat** arttı: seviye 1–4 = **5,5 / 9,5 / 16,5 / 27,5** (eskisi 2 / 3,5 / 6 / 10). Varsayılan seviye 2 = 9,5. Shift basılıyken yine 2 kat.
+- Ctrl x2 oyunda uçuşu kapatmadı. Yeni kapatma yolları eklendi (aşağıda). Ctrl x2 yedek olarak duruyor.
 
 Survival'da uçma ve (deneysel) duvardan geçme. Yere konan tek bir parça. Görünüşü oyunun kendi **beacon** modeli, sarı renkte (MapViewer 1.0.1'de çalışan mesh ile aynı, yeni mesh yok).
 
@@ -12,9 +16,13 @@ Survival'da yeni chat komutu eklemenin tek yolu `SurvivalGame.lua`'yı değişti
 3. Uçarken:
    - **W/A/S/D + fare**: baktığın yöne uçarsın (yukarı bak + W = yüksel, aşağı bak + W = alçal). Space de yukarı çıkarır.
    - **Shift**: 2 kat hız.
-   - Parçaya bakıp **U (Tinker)**: hız seviyesi 1–4.
-   - **Ctrl'e hızlıca 2 kez bas**: uçuş her yerde KAPANIR.
-4. **Noclip (UÇUŞ + NOCLIP modunda):** duvara/zemine bak, **Shift basılı tutarak ona doğru it**. ~0,2 sn sonra en fazla 8 m ötede boş bir yere ışınlanırsın. Gerçek "içinden süzülme" değil, duvarın arkasına atlama.
+   - Parçaya bakıp **U (Tinker)**: hız seviyesi 1–4 (5,5 / 9,5 / 16,5 / 27,5).
+4. **KAPATMA** (her yerde, parça yüklü olduğu sürece):
+   - **Baş sallama (garantili):** dümdüz **YUKARI** bak → dümdüz **AŞAĞI** bak → tekrar **YUKARI**, hepsi 1,5 sn içinde. Sadece bakış yönü kullanılır, uçarken her zaman algılanır. Neredeyse dik (~72°) bakmak gerekir; normal uçuşta yanlışlıkla tetiklenmez.
+   - **Shift'e kısa kısa 2 kez dokun** (0,5 sn içinde). Shift'i basılı tutup hızlanmak kapatmaz; sadece kısa dokunuşlar sayılır.
+   - **Ctrl'e kısa kısa 2 kez dokun**: yedek (1.0.0'da çalışmadı, oyun uçarken Ctrl'i iletmiyor olabilir).
+   - Parçaya bakıp **E** (döngüde KAPALI'ya gelene kadar).
+5. **Noclip (UÇUŞ + NOCLIP modunda):** duvara/zemine bak, **Shift basılı tutarak ona doğru it**. ~0,2 sn sonra en fazla 8 m ötede boş bir yere ışınlanırsın. Gerçek "içinden süzülme" değil, duvarın arkasına atlama. Işınlandıktan hemen sonra Shift'e kısa bir daha dokunursan uçuş kapanabilir; Shift'i ışınlanana kadar basılı tut.
 
 ## Kapatınca ne olur?
 Sadece bu modun açtığı şeyler geri alınır: yüzme/dalış durumu kapanır, hız 1.0'a (oyunun varsayılanı) döner. Kapalıyken script hiçbir şey yapmaz. Dünya save'ine veri yazmaz (storage yok). Parçayı toplarsan uçan herkesin uçuşu kapanır.
@@ -43,5 +51,6 @@ ItemPump.lua, ItemFilter.lua, ClearRain, SurvivalGame.lua, SurvivalPlayer.lua, W
 - **Su üstünde** oyunun su sistemi hızı/yüzmeyi kendi ayarlar, hareket titreyebilir.
 - **Parçadan çok uzaklaşma** (~150 m'de uyarı gelir). Parçanın olduğu alan yüklenmezse script durur. Parça yüklenmezse uçuş kapanabilir (düşme) ya da açık kalabilir (o zaman Ctrl x2 çalışmaz; suya girip çık ya da parçanın yanına dön).
 - Sandık vb. bir şey **taşırken** uçuş kendiliğinden kapanır (takılmayı önlemek için).
-- Ctrl x2'nin uçarken algılanması test edilmedi; olmazsa E ile kapat.
+- **Neden R / C / E gibi bir tuşla kapanmıyor?** Parça scripti tuşları (sm.interactable.actions, client_onAction) sadece oyuncu parçaya *kilitliyken* alır (koltukta oturur gibi). Serbest uçan oyuncunun tuşları parçaya gelmez. Her yerde tuş yakalamak için `SurvivalPlayer.lua` değiştirilmeli; bu mod onu bilerek değiştirmez. O yüzden kapatma, oyunun her an bildirdiği bakış yönü ve Shift/Ctrl durumundan yapılıyor.
+- Script Shift/Ctrl durum değişimlerini oyun konsoluna `[FlyNoclipVault] sprint=true/false` diye yazar; hangisinin uçarken geldiğini oradan görebilirsin.
 - Hız seviyesi parça başına, save'e yazılmaz (yeniden yüklemede 2/4).

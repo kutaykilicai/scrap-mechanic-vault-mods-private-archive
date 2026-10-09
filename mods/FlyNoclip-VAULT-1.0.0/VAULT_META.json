@@ -10,7 +10,7 @@
   "recipe": "craftbot_small_pipes: 3x 8aedf6c2-94e1-4506-89d4-a0227c552f1e, craftTime 2",
   "unique_files": {
     "Survival/Objects/Database/ShapeSets/flynoclip_vault.shapeset": "05b4765d824e75dac66c1bb11de83c40",
-    "Survival/Scripts/game/interactables/FlyNoclipVault.lua": "b8ddee87a67b2a655a0fa34a2f8a4a02"
+    "Survival/Scripts/game/interactables/FlyNoclipVault.lua": "ed5e55ce7aed0c5e028bc8c50e8bbad2"
   },
   "patcher_md5": "db72b4b05ea7c06a598bcc3cd5601e0a",
   "shared_files_single_line_patch": [
@@ -25,5 +25,8 @@
   },
   "no_overlay_files_in_package": true,
   "storage_used": false,
-  "game_scripts_modified": []
+  "game_scripts_modified": [],
+  "script_version": "1.0.1",
+  "changes_1_0_1": "SPEEDS x2.75 -> 5.5/9.5/16.5/27.5 (default idx 2 = 9.5), Shift x2 kept. Off: look-nod up/down/up (|dir.z|>=0.95 within 60 ticks), Shift tap-tap (tap<=12 ticks, gap<=20), Ctrl tap-tap kept as backup, E on part. Ctrl x2 did not fire in-game in 1.0.0.",
+  "previous_lua_md5_1_0_0": "b8ddee87a67b2a655a0fa34a2f8a4a02"
 }
