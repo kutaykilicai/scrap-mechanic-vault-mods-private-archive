@@ -1,0 +1,10 @@
+{
+	"description": "Fly Beacon: placeable Survival part (vanilla beacon mesh). E cycles Off -> Fly -> Fly + Noclip (Shift-push into a wall to blink through, experimental). U/Tinker: speed. Double-tap Ctrl: off. Adds 2 unique files; 4 shared files get one line each via tools/flynoclip_patch.py (no full overlays). Does not modify SurvivalGame.lua, ItemPump, ItemFilter, ClearRain. NOT DEPLOYED.",
+	"fileId": 0,
+	"localId": "36d35110-c0db-4564-910d-1f221ce85943",
+	"name": "FlyNoclip-VAULT",
+	"type": "Gameplay Effects and Changes",
+	"version": 1,
+	"status": "packaged_on_box_not_deployed",
+	"deployed": false
+}

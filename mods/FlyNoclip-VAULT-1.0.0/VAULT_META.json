@@ -1,0 +1,29 @@
+{
+  "uuid": "36d35110-c0db-4564-910d-1f221ce85943",
+  "name": "Fly Beacon",
+  "classname": "FlyNoclipVault",
+  "version": "1.0.0",
+  "status": "packaged_on_box_not_deployed",
+  "deployed_at": null,
+  "design": "Server: character:setSwimming(true)+setDiving(true) re-asserted each tick for active players; speed via character.publicData.waterMovementSpeedFraction (read by vanilla BaseCharacter). Noclip = blink via sm.character.createCharacter + player:setCharacter (same as SurvivalGame /goto), pcall-guarded, self-disables on error.",
+  "renderable": "$SURVIVAL_DATA/Objects/Renderable/interactive/obj_interactive_beacon.rend (vanilla, tinted e0a020; same fields as MapViewer 1.0.1)",
+  "recipe": "craftbot_small_pipes: 3x 8aedf6c2-94e1-4506-89d4-a0227c552f1e, craftTime 2",
+  "unique_files": {
+    "Survival/Objects/Database/ShapeSets/flynoclip_vault.shapeset": "05b4765d824e75dac66c1bb11de83c40",
+    "Survival/Scripts/game/interactables/FlyNoclipVault.lua": "b8ddee87a67b2a655a0fa34a2f8a4a02"
+  },
+  "patcher_md5": "db72b4b05ea7c06a598bcc3cd5601e0a",
+  "shared_files_single_line_patch": [
+    "Survival/Objects/Database/shapesets.json",
+    "Survival/Scripts/game/managers/RecipeManager.lua",
+    "Survival/CraftingRecipes/craftbot/craftbot_small_pipes.json",
+    "Survival/Gui/Language/English/inventoryDescriptions.json"
+  ],
+  "guards": {
+    "ItemPump.lua": "9171e16adb9e5cfd8a119cf93e47caa4",
+    "ItemFilter.lua": "b8e2e2db683dfcb05da08ca50b8927b7"
+  },
+  "no_overlay_files_in_package": true,
+  "storage_used": false,
+  "game_scripts_modified": []
+}

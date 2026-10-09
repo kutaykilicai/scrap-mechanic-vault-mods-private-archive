@@ -15,6 +15,7 @@ Kutay Kılıç — Scrap Mechanic Survival mod paketleri (SM-Bot / VAULT).
 | **ItemPump-VAULT** | `mods/ItemPump-VAULT-1.0.0` | noloop MD5 `9171e16adb9e5cfd8a119cf93e47caa4` |
 | **ItemFilter** | `mods/ItemFilter-51-0.0.20260828` (Vortex `ItemFilter-51-0.0.20260828`) | id-fix MD5 `cd864de817040f1227c957b84913b589` (önceki `b8e2e2db…`): sandık takibi `shape:getId()` ile, filtre değişince kısıt artık silinmiyor |
 | **ClearRain** | `mods/ClearRain-VAULT` | Yağmur alpha ×0.25 |
+| **Fly Beacon / FlyNoclip** | `mods/FlyNoclip-VAULT-1.0.0` | Kasa'ya kuruldu 2026-10-09 (2 dosya + 4 ortak dosyaya birer satır, `tools/flynoclip_patch.py`). **Oyunda test edilmedi.** Kaldırma: `tools/remove_flynoclip_from_kasa.ps1` |
 
 ## Arşiv / iptal
 
