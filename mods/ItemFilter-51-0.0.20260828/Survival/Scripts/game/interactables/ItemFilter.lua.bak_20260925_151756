@@ -1,0 +1,167 @@
+dofile( "$SURVIVAL_DATA/Scripts/util.lua" )
+dofile( "$SURVIVAL_DATA/Scripts/game/util/pipes.lua" )
+
+---@class ItemFilter : ShapeClass
+---@field sv table
+---@field cl table
+ItemFilter = class( nil )
+
+local ItemFilterUuid = sm.uuid.new( "c0d192e4-a5ff-403f-8202-aac8f6946e17" )
+
+-- IN port = top (local +Y). Connect this toward the main network.
+-- OUT port = bottom (local -Y). Connect this toward the filtered chest.
+local InDirectionLocal = sm.vec3.new( 0, 1, 0 )
+local InDirectionDotThreshold = 0.5
+
+local FilterSlotCount = 10
+
+function ItemFilter.server_onCreate( self )
+	self.sv = {}
+	self.sv.lastFilterSignature = nil
+
+	local container = self.shape.interactable:getContainer( 0 )
+	if not container then
+		container = self.shape:getInteractable():addContainer( 0, FilterSlotCount )
+	end
+end
+
+-- Walks every shape piped to this filter's downstream ports (skipping whatever's
+-- through the upstream port, and stopping at any other Item Filter's boundary so
+-- filters can be chained without stepping on each other) and returns the real
+-- containers found along the way, plus a signature identifying exactly which
+-- shapes they belong to (so the caller can tell whether the network changed).
+local function collectDownstreamContainers( self )
+	if not sm.exists( self.shape ) then
+		return {}, ""
+	end
+
+	local inDirWorld = self.shape.worldRotation * InDirectionLocal
+	local selfPos = self.shape.worldPosition
+	local containers = {}
+	local ids = {}
+
+	local function onVertex( vertex, parent )
+		if not sm.exists( vertex.shape ) then
+			return false
+		end
+
+		if parent.shape == self.shape then
+			local dir = ( vertex.shape.worldPosition - selfPos ):normalize()
+			if dir:dot( inDirWorld ) > InDirectionDotThreshold then
+				return false -- this neighbour is the upstream/main network side, don't touch it
+			end
+		end
+
+		if vertex.shape:getShapeUuid() == ItemFilterUuid then
+			return false -- let a downstream filter manage its own sub-network
+		end
+
+		local interactable = vertex.shape:getInteractable()
+		local container = interactable and interactable:getContainer( 0 )
+		if container then
+			containers[#containers + 1] = container
+			ids[#ids + 1] = vertex.shape:getId()
+		end
+		return true
+	end
+
+	ConstructPipedShapeGraph( self.shape, onVertex )
+	table.sort( ids )
+	return containers, table.concat( ids, "," )
+end
+
+-- Every distinct item type sitting in the filter's own slots, in a stable
+-- (sorted) order - one of each is enough, quantity in the slot doesn't matter.
+local function collectFilterUuids( container )
+	local seen = {}
+	local uuids = {}
+	for slot = 0, FilterSlotCount - 1 do
+		local slotItem = container:getItem( slot )
+		if slotItem.quantity > 0 and slotItem.uuid ~= sm.uuid.getNil() then
+			local key = tostring( slotItem.uuid )
+			if not seen[key] then
+				seen[key] = true
+				uuids[#uuids + 1] = slotItem.uuid
+			end
+		end
+	end
+	table.sort( uuids, function( a, b ) return tostring( a ) < tostring( b ) end )
+	return uuids
+end
+
+function ItemFilter.server_onFixedUpdate( self )
+	local container = self.shape.interactable:getContainer( 0 )
+	if not container then
+		return
+	end
+
+	local filterUuids = collectFilterUuids( container )
+	local filterKeys = {}
+	for i, uuid in ipairs( filterUuids ) do
+		filterKeys[i] = tostring( uuid )
+	end
+	local filterSignature = table.concat( filterKeys, "," )
+
+	local targets, networkSignature = collectDownstreamContainers( self )
+
+	-- setFilters is a "this container permanently only accepts X" declaration -
+	-- every vanilla script that calls it does so exactly once, at creation, for
+	-- its OWN container. Calling it every tick on OTHER shapes' containers (as
+	-- this used to do unconditionally) fires their change notification every
+	-- tick, which is what made a CraftBot on the same network replay its
+	-- selection sound nonstop. Only touch the targets when our selection or the
+	-- downstream network itself has actually changed.
+	if filterSignature ~= self.sv.lastFilterSignature or networkSignature ~= self.sv.lastNetworkSignature then
+		for _, targetContainer in ipairs( targets ) do
+			targetContainer:setFilters( filterUuids )
+		end
+		self.sv.lastNetworkSignature = networkSignature
+	end
+
+	self.sv.lastFilterSignature = filterSignature
+end
+
+function ItemFilter.server_onDestroy( self )
+	local targets = collectDownstreamContainers( self )
+	for _, targetContainer in ipairs( targets ) do
+		targetContainer:setFilters( {} )
+	end
+end
+
+function ItemFilter.client_canCarry( self )
+	local container = self.shape.interactable:getContainer( 0 )
+	if container and sm.exists( container ) then
+		return not container:isEmpty()
+	end
+	return false
+end
+
+function ItemFilter.client_onInteract( self, _, state )
+	if state == true then
+		local container = self.shape.interactable:getContainer( 0 )
+		if container then
+			self.cl = self.cl or {}
+			local gui = sm.gui.createContainerGui( true )
+			gui:setContainer( "UpperGrid", container )
+			gui:setText( "UpperName", "Item Filter" )
+			gui:setText( "LowerName", "#{INVENTORY_TITLE}" )
+			gui:setContainer( "LowerGrid", sm.localPlayer.getInventory() )
+			gui:setOnCloseCallback( "cl_e_onClose" )
+			gui:open()
+			self.cl.gui = gui
+		end
+	end
+end
+
+function ItemFilter.cl_e_onClose( self )
+	if self.cl then
+		self.cl.gui = nil
+	end
+end
+
+function ItemFilter.client_onDestroy( self )
+	if self.cl and self.cl.gui and self.cl.gui:isActive() then
+		self.cl.gui:close()
+		self.cl.gui = nil
+	end
+end

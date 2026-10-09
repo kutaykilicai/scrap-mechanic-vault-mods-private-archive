@@ -1,0 +1,335 @@
+dofile( "$SURVIVAL_DATA/Scripts/util.lua" )
+dofile( "$SURVIVAL_DATA/Scripts/game/util/pipes.lua" )
+
+---@class ItemPump : ShapeClass
+---@field sv table
+---@field cl table
+ItemPump = class( nil )
+ItemPump.connectionInput = sm.interactable.connectionType.logic
+ItemPump.connectionOutput = sm.interactable.connectionType.none
+ItemPump.maxParentCount = 1
+ItemPump.maxChildCount = 0
+
+local ItemPumpUuid = sm.uuid.new( "b7e4a201-9c58-4f2d-8a61-0d3e5f7a9124" )
+local ItemFilterUuid = sm.uuid.new( "c0d192e4-a5ff-403f-8202-aac8f6946e17" )
+
+-- IN = local +Y (sources). OUT = local -Y (destinations). Same convention as Item Filter.
+local InDirectionLocal = sm.vec3.new( 0, 1, 0 )
+local DirectionDotThreshold = 0.5
+
+local FilterSlotCount = 10
+local StartInterval = 6
+local MaxInFlight = 12
+local TicksPerPipe = 8
+local MinTravelTicks = 28
+local MoveQty = 1
+
+function ItemPump.server_onCreate( self )
+	self.sv = {}
+	self.sv.tickAcc = 0
+	self.sv.inFlight = {}
+
+	local container = self.shape.interactable:getContainer( 0 )
+	if not container then
+		container = self.shape:getInteractable():addContainer( 0, FilterSlotCount )
+	end
+end
+
+local function isPumpEnabled( self )
+	local parent = self.shape:getInteractable():getSingleParent()
+	if parent then
+		return parent.active == true
+	end
+	-- No switch wired = always on
+	return true
+end
+
+local function collectFilterUuids( container )
+	local seen = {}
+	local uuids = {}
+	if not container then
+		return uuids
+	end
+	for slot = 0, FilterSlotCount - 1 do
+		local slotItem = container:getItem( slot )
+		if slotItem.quantity > 0 and slotItem.uuid ~= sm.uuid.getNil() then
+			local key = tostring( slotItem.uuid )
+			if not seen[key] then
+				seen[key] = true
+				uuids[#uuids + 1] = slotItem.uuid
+			end
+		end
+	end
+	return uuids
+end
+
+local function uuidAllowed( uuid, filterUuids )
+	if #filterUuids == 0 then
+		return true
+	end
+	local key = tostring( uuid )
+	for _, f in ipairs( filterUuids ) do
+		if tostring( f ) == key then
+			return true
+		end
+	end
+	return false
+end
+
+-- { container, shape, path } — path is shapesOnPath from pump to container (includes container).
+local function collectSideEnds( self, wantInput )
+	if not sm.exists( self.shape ) then
+		return {}
+	end
+
+	local inDirWorld = self.shape.worldRotation * InDirectionLocal
+	local selfPos = self.shape.worldPosition
+	local ends = {}
+
+	local function onVertex( vertex, parent )
+		if not sm.exists( vertex.shape ) then
+			return false
+		end
+
+		if parent.shape == self.shape then
+			local dir = ( vertex.shape.worldPosition - selfPos ):normalize()
+			local towardIn = dir:dot( inDirWorld ) > DirectionDotThreshold
+			if wantInput then
+				if not towardIn then
+					return false
+				end
+			else
+				if towardIn then
+					return false
+				end
+			end
+		end
+
+		local uuid = vertex.shape:getShapeUuid()
+		if uuid == ItemPumpUuid or uuid == ItemFilterUuid then
+			if vertex.shape ~= self.shape then
+				return false
+			end
+		end
+
+		if vertex.shape == self.shape then
+			return true
+		end
+
+		local interactable = vertex.shape:getInteractable()
+		local container = interactable and interactable:getContainer( 0 )
+		if container then
+			local pathCopy = {}
+			local srcPath = vertex.shapesOnPath or {}
+			for i = 1, #srcPath do
+				pathCopy[i] = srcPath[i]
+			end
+			ends[#ends + 1] = { container = container, shape = vertex.shape, path = pathCopy }
+		end
+		return true
+	end
+
+	ConstructPipedShapeGraph( self.shape, onVertex )
+	return ends
+end
+
+local function buildTravelPath( self, srcEnd, dstEnd )
+	local path = {}
+	for i = #srcEnd.path, 1, -1 do
+		path[#path + 1] = srcEnd.path[i]
+	end
+	path[#path + 1] = self.shape
+	for i = 1, #dstEnd.path do
+		path[#path + 1] = dstEnd.path[i]
+	end
+	return path
+end
+
+local function finishArrivals( self )
+	local still = {}
+	for _, parcel in ipairs( self.sv.inFlight ) do
+		parcel.ticksLeft = parcel.ticksLeft - 1
+		if parcel.ticksLeft <= 0 then
+			if sm.exists( parcel.destContainer ) then
+				sm.container.beginTransaction()
+				sm.container.collect( parcel.destContainer, parcel.uuid, parcel.qty, true )
+				if not sm.container.endTransaction() then
+					if sm.exists( parcel.srcContainer ) then
+						sm.container.beginTransaction()
+						sm.container.collect( parcel.srcContainer, parcel.uuid, parcel.qty, true )
+						sm.container.endTransaction()
+					end
+				end
+			end
+		else
+			still[#still + 1] = parcel
+		end
+	end
+	self.sv.inFlight = still
+end
+
+local function tryLaunch( self )
+	if #self.sv.inFlight >= MaxInFlight then
+		return
+	end
+
+	local sources = collectSideEnds( self, true )
+	local dests = collectSideEnds( self, false )
+	if #sources == 0 or #dests == 0 then
+		return
+	end
+
+	local filterContainer = self.shape.interactable:getContainer( 0 )
+	local filterUuids = collectFilterUuids( filterContainer )
+
+	for _, src in ipairs( sources ) do
+		if sm.exists( src.container ) and not src.container:isEmpty() then
+			for slot = 0, src.container:getSize() - 1 do
+				local item = src.container:getItem( slot )
+				if item.quantity > 0 and item.uuid ~= sm.uuid.getNil() and uuidAllowed( item.uuid, filterUuids ) then
+					for _, dst in ipairs( dests ) do
+						if sm.exists( dst.container ) then
+							local can = true
+							if sm.container.canCollect then
+								can = sm.container.canCollect( dst.container, item.uuid, MoveQty )
+							end
+							if can then
+								sm.container.beginTransaction()
+								local okSpend = sm.container.spend( src.container, item.uuid, MoveQty, true )
+								if okSpend ~= false and sm.container.endTransaction() then
+									local travelPath = buildTravelPath( self, src, dst )
+									local ticks = math.max( MinTravelTicks, #travelPath * TicksPerPipe )
+									self.sv.inFlight[#self.sv.inFlight + 1] = {
+										uuid = item.uuid,
+										qty = MoveQty,
+										srcContainer = src.container,
+										destContainer = dst.container,
+										ticksLeft = ticks
+									}
+									self.network:sendToClients( "cl_n_itemTravel", {
+										item = item.uuid,
+										source = src.shape,
+										dest = dst.shape
+									} )
+									return
+								else
+									sm.container.endTransaction()
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function ItemPump.server_onFixedUpdate( self )
+	if not sm.exists( self.shape ) then
+		return
+	end
+
+	finishArrivals( self )
+
+	if not isPumpEnabled( self ) then
+		self.sv.tickAcc = 0
+		return
+	end
+
+	self.sv.tickAcc = ( self.sv.tickAcc or 0 ) + 1
+	if self.sv.tickAcc < StartInterval then
+		return
+	end
+	self.sv.tickAcc = 0
+	tryLaunch( self )
+end
+
+function ItemPump.client_onCreate( self )
+	self.cl = {}
+	self.cl.pipeEffectPlayer = PipeEffectPlayer()
+	self.cl.pipeEffectPlayer:onCreate()
+end
+
+function ItemPump.client_onUpdate( self, dt )
+	if self.cl and self.cl.pipeEffectPlayer then
+		self.cl.pipeEffectPlayer:update( dt )
+	end
+end
+
+function ItemPump.cl_n_itemTravel( self, data )
+	if not self.cl or not self.cl.pipeEffectPlayer then
+		return
+	end
+	if not data or not data.item or not data.source or not data.dest then
+		return
+	end
+	if not sm.exists( data.source ) or not sm.exists( data.dest ) then
+		return
+	end
+
+	local sources = collectSideEnds( self, true )
+	local dests = collectSideEnds( self, false )
+	local srcEnd, dstEnd
+	for _, s in ipairs( sources ) do
+		if s.shape == data.source then
+			srcEnd = s
+			break
+		end
+	end
+	for _, d in ipairs( dests ) do
+		if d.shape == data.dest then
+			dstEnd = d
+			break
+		end
+	end
+	if not srcEnd or not dstEnd then
+		self.cl.pipeEffectPlayer:pushShapeEffectTask( { self.shape, data.dest }, data.item, nil, 0.7 )
+		return
+	end
+	local path = buildTravelPath( self, srcEnd, dstEnd )
+	if #path >= 2 then
+		self.cl.pipeEffectPlayer:pushShapeEffectTask( path, data.item, nil, 0.7 )
+	end
+end
+
+function ItemPump.client_canCarry( self )
+	local container = self.shape.interactable:getContainer( 0 )
+	if container and sm.exists( container ) then
+		return not container:isEmpty()
+	end
+	return false
+end
+
+function ItemPump.client_onInteract( self, _, state )
+	if state == true then
+		local container = self.shape.interactable:getContainer( 0 )
+		if container then
+			self.cl = self.cl or {}
+			local gui = sm.gui.createContainerGui( true )
+			gui:setContainer( "UpperGrid", container )
+			gui:setText( "UpperName", "Item Pump (filter)" )
+			gui:setText( "LowerName", "#{INVENTORY_TITLE}" )
+			gui:setContainer( "LowerGrid", sm.localPlayer.getInventory() )
+			gui:setOnCloseCallback( "cl_e_onClose" )
+			gui:open()
+			self.cl.gui = gui
+		end
+	end
+end
+
+function ItemPump.cl_e_onClose( self )
+	if self.cl then
+		self.cl.gui = nil
+	end
+end
+
+function ItemPump.client_onDestroy( self )
+	if self.cl and self.cl.pipeEffectPlayer then
+		self.cl.pipeEffectPlayer:onDestroy()
+		self.cl.pipeEffectPlayer = nil
+	end
+	if self.cl and self.cl.gui and self.cl.gui:isActive() then
+		self.cl.gui:close()
+		self.cl.gui = nil
+	end
+end

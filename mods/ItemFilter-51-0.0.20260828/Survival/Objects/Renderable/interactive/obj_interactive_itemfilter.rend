@@ -1,0 +1,28 @@
+{
+	"lodList" :
+	[
+		{
+			"includes" :
+			[
+				"POSITION",
+				"UV0",
+				"NORMAL"
+			],
+			"mesh" : "$SURVIVAL_DATA/Objects/Mesh/interactive/obj_interactive_itemfilter.fbx",
+			"minViewSize" : 25,
+			"subMeshMap" :
+			{
+				"itemfilter" :
+				{
+					"material" : "DifAsgNor",
+					"textureList" :
+					[
+						"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_itemfilter_dif.tga",
+						"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_itemfilter_asg.tga",
+						"$SURVIVAL_DATA/Objects/Textures/interactive/obj_interactive_itemfilter_nor.tga"
+					]
+				}
+			}
+		}
+	]
+}
