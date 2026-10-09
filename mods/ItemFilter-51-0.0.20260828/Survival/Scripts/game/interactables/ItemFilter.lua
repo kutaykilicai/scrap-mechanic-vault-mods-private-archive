@@ -44,7 +44,7 @@ function ItemFilter.server_onCreate( self )
 	self.sv = {}
 	self.sv.lastFilterSignature = nil
 	self.sv.lastNetworkSignature = nil
-	self.sv.lastTargets = {}
+	self.sv.lastTargets = {} -- { [shapeId] = container }
 	self.sv.didStuckClear = false
 
 	local container = self.shape.interactable:getContainer( 0 )
@@ -66,6 +66,7 @@ local function collectDownstreamContainers( self, stopAtStorage )
 		return {}, ""
 	end
 
+	-- Returns { [shapeId] = container }, sorted id signature string
 	local inDirWorld = self.shape.worldRotation * InDirectionLocal
 	local selfPos = self.shape.worldPosition
 	local containers = {}
@@ -91,8 +92,13 @@ local function collectDownstreamContainers( self, stopAtStorage )
 			local interactable = vertex.shape:getInteractable()
 			local container = interactable and interactable:getContainer( 0 )
 			if container then
-				containers[#containers + 1] = container
-				ids[#ids + 1] = vertex.shape:getId()
+				-- Key by shape id: SM hands out a fresh userdata per getContainer call,
+				-- so container objects are not stable table keys.
+				local id = vertex.shape:getId()
+				if containers[id] == nil then
+					containers[id] = container
+					ids[#ids + 1] = id
+				end
 			end
 			-- Stop at chest so Craftbot/Depo dump chests beyond the sort bank
 			-- are never whitelist targets.
@@ -146,13 +152,9 @@ function ItemFilter.server_onFixedUpdate( self )
 	-- target (Craftbot Depo dump chests that inherited a stale whitelist).
 	-- Sibling filters re-apply their own targets on their next tick.
 	if not self.sv.didStuckClear then
-		local legit = {}
-		for _, t in ipairs( targets ) do
-			legit[t] = true
-		end
 		local flooded = collectDownstreamContainers( self, false )
-		for _, c in ipairs( flooded ) do
-			if sm.exists( c ) and not legit[c] then
+		for id, c in pairs( flooded ) do
+			if targets[id] == nil and sm.exists( c ) then
 				c:setFilters( {} )
 			end
 		end
@@ -162,15 +164,14 @@ function ItemFilter.server_onFixedUpdate( self )
 	-- setFilters only when selection or first-layer network changes (avoids Craftbot
 	-- selection-sound spam). Clear chests that left the first-layer target set.
 	if filterSignature ~= self.sv.lastFilterSignature or networkSignature ~= self.sv.lastNetworkSignature then
-		local currentSet = {}
-		for _, targetContainer in ipairs( targets ) do
+		for _, targetContainer in pairs( targets ) do
 			if sm.exists( targetContainer ) then
-				currentSet[targetContainer] = true
 				targetContainer:setFilters( filterUuids )
 			end
 		end
-		for _, prev in ipairs( self.sv.lastTargets or {} ) do
-			if sm.exists( prev ) and not currentSet[prev] then
+		-- Only clear chests whose shape id left the first-layer target set.
+		for id, prev in pairs( self.sv.lastTargets or {} ) do
+			if targets[id] == nil and sm.exists( prev ) then
 				prev:setFilters( {} )
 			end
 		end
@@ -183,10 +184,10 @@ end
 
 function ItemFilter.server_onDestroy( self )
 	local targets = ( self.sv and self.sv.lastTargets ) or {}
-	if #targets == 0 then
+	if next( targets ) == nil then
 		targets = collectDownstreamContainers( self )
 	end
-	for _, targetContainer in ipairs( targets ) do
+	for _, targetContainer in pairs( targets ) do
 		if sm.exists( targetContainer ) then
 			targetContainer:setFilters( {} )
 		end
